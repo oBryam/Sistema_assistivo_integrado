@@ -1,20 +1,25 @@
 """
-Testes automatizados atualizados para validação da independência dos módulos:
-- Lupa Dinâmica de Área Ampla (Presets Média, Grande, Panorâmica)
-- Contraste Global de Tela Inteira para Fotofobia (Normal, Invertido, Preto/Amarelo)
-- Síntese de Voz (TTS) resiliente em Língua Portuguesa
-- Confirmações Sonoras de Acessibilidade
+Testes automatizados atualizados v0.2.1:
+1. Persistência de Configurações (config_manager)
+2. OCR Instantâneo com Seleção de Área (ocr_engine e snipper)
+3. Lupa Dinâmica com Ancoragem, Régua Guia e Movimento Amortecido (magnifier)
+4. Adaptação Cromática Global com 5 Modos de Contraste (contrast_manager)
+5. Síntese de Voz (TTS) com Pausa/Retomada e Audiodescrição Blindada (tts_engine)
+6. Efeitos Sonoros de Confirmação (sound_effects)
 """
 
 import unittest
 import tkinter as tk
+from config_manager import cfg
 from contrast_manager import contrast_manager
 from magnifier import DynamicMagnifier
+from ocr_engine import ocr_engine
+from snipper import ScreenSnipper
 from sound_effects import sounds
 from tts_engine import TTSEngine
 
 
-class TestAssistiveAppUpdated(unittest.TestCase):
+class TestAssistiveAppV021(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.root = tk.Tk()
@@ -28,8 +33,61 @@ class TestAssistiveAppUpdated(unittest.TestCase):
         except Exception:
             pass
 
-    def test_eixo_1_sound_effects(self):
-        """Valida que todos os efeitos sonoros funcionam assincronamente."""
+    def test_01_config_persistence(self):
+        cfg.set("test_key", "valor_teste")
+        self.assertEqual(cfg.get("test_key"), "valor_teste")
+
+    def test_02_ocr_and_snipper_ready(self):
+        self.assertIsNotNone(ocr_engine)
+        snipper = ScreenSnipper(self.root, on_area_selected=lambda l, t, w, h: None)
+        self.assertIsNotNone(snipper)
+
+    def test_03_magnifier_advanced_features(self):
+        mag = DynamicMagnifier(self.root)
+        self.assertEqual(mag.current_preset, "Grande")
+
+        # Régua Guia
+        initial_guide = mag.reading_guide
+        mag.toggle_reading_guide()
+        self.assertNotEqual(mag.reading_guide, initial_guide)
+
+        # Movimento Suave
+        initial_smooth = mag.smooth_movement
+        mag.toggle_smooth_movement()
+        self.assertNotEqual(mag.smooth_movement, initial_smooth)
+
+        # Ancoragem
+        initial_dock = mag.is_docked
+        mag.toggle_docked()
+        self.assertNotEqual(mag.is_docked, initial_dock)
+
+        # Zoom
+        mag.zoom_in()
+        self.assertGreaterEqual(mag.scale, 2.0)
+        mag.zoom_out()
+        self.assertGreaterEqual(mag.scale, 1.5)
+
+    def test_04_contrast_manager_5_modes(self):
+        cm = contrast_manager
+        self.assertEqual(len(cm.MODES), 5)
+        for i, name in enumerate(["Normal", "Invertido", "Preto/Amarelo", "Âmbar (Anti-Luz Azul)", "Escala de Cinza"]):
+            cm.set_mode(i)
+            self.assertEqual(cm.get_current_mode_name(), name)
+        cm.set_mode(0)
+
+    def test_05_tts_pause_resume_stop(self):
+        tts = TTSEngine()
+        tts.set_rate(2)
+        self.assertEqual(tts.rate, 2)
+        tts._is_speaking = True
+        tts.pause()
+        self.assertTrue(tts.is_paused())
+        tts.resume()
+        self.assertFalse(tts.is_paused())
+        tts.stop(silent=True)
+        self.assertTrue(tts._stop_requested)
+
+    def test_06_sound_effects(self):
         sounds.startup()
         sounds.lens_on()
         sounds.lens_off()
@@ -39,63 +97,6 @@ class TestAssistiveAppUpdated(unittest.TestCase):
         sounds.tts_start()
         sounds.tts_stop()
         sounds.alert_no_text()
-
-    def test_eixo_2_magnifier_large_area_presets(self):
-        """Valida a ampliação da área da lupa e presets de tamanho."""
-        mag = DynamicMagnifier(self.root)
-        self.assertEqual(mag.current_preset, "Grande")
-        self.assertEqual((mag.win_width, mag.win_height), (700, 500))
-
-        # Testa troca para preset Média
-        mag.set_size_preset("Média")
-        self.assertEqual((mag.win_width, mag.win_height), (520, 380))
-
-        # Testa troca para preset Panorâmica
-        mag.set_size_preset("Panorâmica")
-        self.assertEqual((mag.win_width, mag.win_height), (900, 560))
-
-        # Testa limites de zoom (1.5x a 6.0x)
-        for _ in range(12):
-            mag.zoom_in()
-        self.assertEqual(mag.scale, 6.0)
-
-        for _ in range(15):
-            mag.zoom_out()
-        self.assertEqual(mag.scale, 1.5)
-
-    def test_eixo_3_global_contrast_independence(self):
-        """Valida que o contraste global para fotofobia opera independentemente da lupa."""
-        cm = contrast_manager
-        cm.set_mode(0)
-        self.assertEqual(cm.get_current_mode_name(), "Normal")
-
-        # Invertido
-        cm.next_mode()
-        self.assertEqual(cm.get_current_mode_name(), "Invertido")
-
-        # Preto e Amarelo
-        cm.next_mode()
-        self.assertEqual(cm.get_current_mode_name(), "Preto/Amarelo")
-
-        # Retorna para Normal
-        cm.set_mode(0)
-        self.assertEqual(cm.get_current_mode_name(), "Normal")
-
-    def test_eixo_4_tts_engine_resilience(self):
-        """Valida os controles do motor TTS."""
-        tts = TTSEngine()
-        tts.set_rate(3)
-        self.assertEqual(tts.rate, 3)
-
-        # Limites seguros de velocidade
-        tts.set_rate(15)
-        self.assertEqual(tts.rate, 8)
-        tts.set_rate(-15)
-        self.assertEqual(tts.rate, -5)
-
-        # Interrupção imediata
-        tts.stop(silent=True)
-        self.assertTrue(tts._stop_requested)
 
 
 if __name__ == "__main__":

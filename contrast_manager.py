@@ -1,13 +1,14 @@
 """
 Módulo de Adaptação Cromática e Filtros de Contraste para Fotofobia.
 Eixo 3: Funciona de forma 100% independente da lupa, aplicando os filtros
-diretamente na tela de todo o sistema operacional (Windows Magnification API)
-ou de forma sincronizada na lupa.
+diretamente na tela de todo o sistema operacional (Windows Magnification API).
 
-Modos:
+Modos Expandidos (v0.2):
 0: Normal (Cores originais)
-1: Cores Invertidas (Inversão global do espectro RGB)
-2: Alto Contraste Preto e Amarelo (Fundo preto com caracteres amarelos)
+1: Invertido (Inversão global do espectro RGB - Fundo Escuro)
+2: Preto e Amarelo (Fundo preto absoluto com caracteres amarelo vívido)
+3: Âmbar / Sépia (Filtro anti-luz azul para redução da fadiga ocular)
+4: Escala de Cinza (Alto contraste monocromático para daltonismo)
 """
 
 import atexit
@@ -21,7 +22,13 @@ class MAGCOLOREFFECT(ctypes.Structure):
 
 
 class FullscreenContrastManager:
-    MODES = ["Normal", "Invertido", "Preto/Amarelo"]
+    MODES = [
+        "Normal",
+        "Invertido",
+        "Preto/Amarelo",
+        "Âmbar (Anti-Luz Azul)",
+        "Escala de Cinza"
+    ]
 
     def __init__(self, on_change_callback: Optional[Callable] = None):
         self.mode_index = 0
@@ -39,14 +46,13 @@ class FullscreenContrastManager:
                 res = self._mag_dll.MagInitialize()
                 if res:
                     self.is_supported = True
-                    # Garante que começa normal
                     self._apply_identity()
         except Exception as e:
-            print(f"[Contrast API Warning] {e}")
+            print(f"[Contrast API Warning]: {e}")
             self.is_supported = False
 
     def _apply_identity(self):
-        """Restaura as cores padrão do sistema operacional."""
+        """Restaura as cores normais do monitor."""
         if not self.is_supported or not self._mag_dll:
             return
         try:
@@ -55,70 +61,95 @@ class FullscreenContrastManager:
                 mat.transform[i][i] = 1.0
             self._mag_dll.MagSetFullscreenColorEffect(ctypes.byref(mat))
         except Exception as e:
-            print(f"[Contrast Reset Error] {e}")
+            print(f"[Contrast Reset Error]: {e}")
 
     def _apply_inverted(self):
-        """Aplica inversão de cores em toda a tela do Windows."""
+        """Inversão global do espectro RGB (fundos brancos viram pretos)."""
         if not self.is_supported or not self._mag_dll:
             return
         try:
             mat = MAGCOLOREFFECT()
-            # Diagonal negativa para inverter R, G, B
             mat.transform[0][0] = -1.0
             mat.transform[1][1] = -1.0
             mat.transform[2][2] = -1.0
             mat.transform[3][3] = 1.0
-            # Bias de +1.0 para transformar [0, 1] em [1, 0]
             mat.transform[4][0] = 1.0
             mat.transform[4][1] = 1.0
             mat.transform[4][2] = 1.0
             mat.transform[4][4] = 1.0
             self._mag_dll.MagSetFullscreenColorEffect(ctypes.byref(mat))
         except Exception as e:
-            print(f"[Contrast Invert Error] {e}")
+            print(f"[Contrast Invert Error]: {e}")
 
     def _apply_black_yellow(self):
-        """
-        Aplica filtro Preto e Amarelo para fotofobia em toda a tela:
-        Fundos brancos/claros tornam-se preto absoluto (0, 0, 0).
-        Textos e elementos escuros tornam-se amarelo vívido (255, 230, 0).
-        """
+        """Alto contraste: fundos claros viram preto e texto vira amarelo vívido."""
         if not self.is_supported or not self._mag_dll:
             return
         try:
             mat = MAGCOLOREFFECT()
-            # Coluna 0 (Vermelho): R' = 1.0 - (0.30*R + 0.59*G + 0.11*B)
+            # R' = 1.0 - (0.30*R + 0.59*G + 0.11*B)
             mat.transform[0][0] = -0.30
             mat.transform[1][0] = -0.59
             mat.transform[2][0] = -0.11
             mat.transform[4][0] = 1.00
 
-            # Coluna 1 (Verde): G' = 0.90 - (0.27*R + 0.53*G + 0.10*B)
+            # G' = 0.90 - (0.27*R + 0.53*G + 0.10*B)
             mat.transform[0][1] = -0.27
             mat.transform[1][1] = -0.53
             mat.transform[2][1] = -0.10
             mat.transform[4][1] = 0.90
 
-            # Coluna 2 (Azul): B' = 0.0 (sem azul para reduzir luz azul e fotofobia)
+            # B' = 0.0 (sem azul para fotofobia)
             mat.transform[0][2] = 0.0
             mat.transform[1][2] = 0.0
             mat.transform[2][2] = 0.0
             mat.transform[4][2] = 0.0
 
-            # Alfa e translação homogênea
             mat.transform[3][3] = 1.0
             mat.transform[4][4] = 1.0
-
             self._mag_dll.MagSetFullscreenColorEffect(ctypes.byref(mat))
         except Exception as e:
-            print(f"[Contrast Black/Yellow Error] {e}")
+            print(f"[Contrast Black/Yellow Error]: {e}")
+
+    def _apply_amber_sepia(self):
+        """Filtro Âmbar / Sépia: atenuação drástica de luz azul e calor visual."""
+        if not self.is_supported or not self._mag_dll:
+            return
+        try:
+            mat = MAGCOLOREFFECT()
+            # Tom avermelhado/dourado
+            mat.transform[0][0] = 0.45; mat.transform[1][0] = 0.65; mat.transform[2][0] = 0.15
+            # Tom verde aconchegante
+            mat.transform[0][1] = 0.35; mat.transform[1][1] = 0.55; mat.transform[2][1] = 0.10
+            # Redução intensa do canal azul
+            mat.transform[0][2] = 0.05; mat.transform[1][2] = 0.10; mat.transform[2][2] = 0.05
+            mat.transform[3][3] = 1.0
+            mat.transform[4][4] = 1.0
+            self._mag_dll.MagSetFullscreenColorEffect(ctypes.byref(mat))
+        except Exception as e:
+            print(f"[Contrast Amber Error]: {e}")
+
+    def _apply_grayscale(self):
+        """Escala de cinza de alto contraste para neutralidade e daltonismo."""
+        if not self.is_supported or not self._mag_dll:
+            return
+        try:
+            mat = MAGCOLOREFFECT()
+            for col in range(3):
+                mat.transform[0][col] = 0.299
+                mat.transform[1][col] = 0.587
+                mat.transform[2][col] = 0.114
+            mat.transform[3][3] = 1.0
+            mat.transform[4][4] = 1.0
+            self._mag_dll.MagSetFullscreenColorEffect(ctypes.byref(mat))
+        except Exception as e:
+            print(f"[Contrast Grayscale Error]: {e}")
 
     def next_mode(self):
-        """Alterna ciclicamente entre Normal, Invertido e Preto/Amarelo (Ctrl + Alt + I)."""
+        """Alterna ciclicamente entre todos os modos disponíveis (Ctrl + Alt + I)."""
         self.set_mode((self.mode_index + 1) % len(self.MODES))
 
     def set_mode(self, index: int):
-        """Define o modo cromático especificado."""
         self.mode_index = index % len(self.MODES)
         sounds.filter_change()
 
@@ -128,6 +159,10 @@ class FullscreenContrastManager:
             self._apply_inverted()
         elif self.mode_index == 2:
             self._apply_black_yellow()
+        elif self.mode_index == 3:
+            self._apply_amber_sepia()
+        elif self.mode_index == 4:
+            self._apply_grayscale()
 
         if self.on_change_callback:
             self.on_change_callback(self.mode_index, self.get_current_mode_name())
@@ -136,7 +171,6 @@ class FullscreenContrastManager:
         return self.MODES[self.mode_index]
 
     def reset_to_normal(self):
-        """Restaura o monitor ao estado padrão ao sair."""
         self._apply_identity()
         if self.is_supported and self._mag_dll:
             try:

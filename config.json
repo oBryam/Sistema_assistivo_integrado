@@ -1,0 +1,13 @@
+{
+    "magnifier_scale": 2.0,
+    "magnifier_preset": "Grande",
+    "magnifier_docked": true,
+    "magnifier_dock_position": "Topo",
+    "reading_guide": false,
+    "smooth_movement": false,
+    "contrast_mode": 0,
+    "tts_rate": 2,
+    "audiodescription": true,
+    "theme": "dark",
+    "test_key": "valor_teste"
+}

@@ -1,68 +1,59 @@
-# Sistema Assistivo Integrado v0.1
+# Sistema Assistivo Integrado v0.2
 
-Aplicação desenvolvida em **Python** como uma **Tecnologia Digital da Informação e Comunicação (TDIC)** aliada à **Tecnologia Assistiva (TA)**. O software foi estruturado para fornecer total autonomia a estudantes com baixa visão, fotofobia e dificuldades na leitura de textos extensos, com **total independência entre as funcionalidades**.
-
----
-
-## ⚡ Independência Total entre as Funções
-
-Cada um dos três recursos principais funciona de forma autônoma:
-1. **Lupa Dinâmica**: Pode ser ligada ou desligada a qualquer momento, sem interferir no contraste da tela ou na leitura de texto.
-2. **Adaptação Cromática para Fotofobia**: Funciona **sempre, em toda a tela do sistema operacional** (Windows Magnification API), protegendo contra luz ofuscante mesmo com a lupa desativada.
-3. **Leitura Auditiva (TTS)**: Funciona continuamente em segundo plano para qualquer janela ou texto selecionado, independentemente de a lupa estar aberta ou do modo de cor ativo.
+Aplicação desenvolvida em **Python** como uma **Tecnologia Digital da Informação e Comunicação (TDIC)** aliada à **Tecnologia Assistiva (TA)**. O software foi estruturado para fornecer total autonomia a estudantes com baixa visão, fotofobia e dificuldades no processamento de textos extensos ou bloqueados, com **total independência entre as funcionalidades**.
 
 ---
 
-## 🏛️ Detalhamento dos Quatro Eixos Operacionais
+## ⚡ Novidades da Versão 0.2 (Refinamento Visual & Estabilidade)
 
-### 1. Painel Principal de Alto Contraste
-- **Esquema Cromático Estrito**: Fundo preto profundo (`#0A0A0A` e `#161616`) com tipografia ampliada em **Amarelo vibrante (`#FFE600`)** e **Branco puro (`#FFFFFF`)**.
-- **Controles Intuitivos**: Botões grandes com alto relevo e respostas visuais imediatas.
-- **Confirmação Sonora**: Bipes distintos emitidos via `winsound.Beep` para inicialização, acionamento de lupa, ajuste de zoom, mudança de filtro e vocalização.
-
-### 2. Lupa Dinâmica com Área Ampla
-- **Área Significativamente Aumentada**: Para resolver o problema de campo visual restrito, a lupa agora conta com dimensões generosas:
-  - **Média**: `520 x 380 px`
-  - **Grande (Padrão)**: `700 x 500 px` *(quase 3x a área original)*
-  - **Panorâmica**: `900 x 560 px` *(ideal para leitura contínua de parágrafos inteiros)*
-- **Escala de 1.5x a 6.0x**: Ajustável a qualquer instante via `Ctrl + "+"` / `Ctrl + "-"` ou pela **roda de rolagem do mouse**.
-- **Não Rouba Foco**: Opera com `WS_EX_NOACTIVATE` e `WDA_EXCLUDEFROMCAPTURE`, evitando que a lente trave a digitação do aluno ou produza espelhamento infinito.
-
-### 3. Adaptação Cromática Global para Fotofobia
-- **Atuação em Toda a Tela**: Aplica matriz de transformação de cores diretamente ao monitor via API nativa do Windows (`Magnification.dll`).
-- **Três Modos Disponíveis**:
-  1. **Normal**: Cores padrão do sistema operacional.
-  2. **Invertido (Anti-Brilho)**: Inverte todo o espectro cromático, convertendo páginas web e PDFs brancos em fundos escuros.
-  3. **Alto Contraste Preto e Amarelo**: Remove a luz azul e o brilho excessivo, mapeando o fundo para preto absoluto (`#000000`) e caracteres para amarelo vívido (`#FFE600`).
-- **Atalho Global**: Alterne a qualquer momento com **`Ctrl + Alt + I`**, esteja a lupa aberta ou não.
-
-### 4. Leitura Auditiva de Textos Extensos (TTS Resiliente)
-- **Multi-Modalidade de Entrada**:
-  - **Seleção na Tela (`Ctrl + Alt + R`)**: Selecione qualquer texto em PDFs, navegadores ou editores e pressione o atalho.
-  - **Colar e Ler**: Botão rápido no painel para ler imediatamente o conteúdo da área de transferência.
-  - **Caixa de Texto Direta**: Permite digitar ou colar textos diretamente no painel para vocalização assistida.
-- **Voz Nativa em Português**: Configurado com voz brasileira (**Microsoft Maria Desktop - pt-BR**).
-- **Interrupção Instantânea (`Ctrl + Alt + P`)**: Purga o buffer de fala na hora, sem travamentos.
-- **Ajuste de Velocidade**: Controle deslizante no painel (-4 a +6) para adequação ao ritmo cognitivo do estudante.
+1. **Interface Despoluída e Ergonômica**:
+   - Redução da sobrecarga cognitiva: eliminação de blocos repetitivos de texto e barras de rolagem desnecessárias.
+   - Janela compacta e moderna com cartões limpos e controles objetivos.
+2. **Alternância entre Modo Escuro e Modo Claro**:
+   - Botão no cabeçalho `☀️ Claro` / `🌙 Escuro` com troca instantânea de paleta de cores.
+   - O tema escolhido é salvo automaticamente no `config.json`.
+3. **OCR Instantâneo com Seleção Visual de Área (`Ctrl + Alt + O`)**:
+   - Abre uma sobreposição translúcida com mira de alta precisão.
+   - O estudante clica e arrasta um retângulo amarelo diretamente sobre o texto/imagem que deseja ler.
+4. **Lupa com Ancoragem, Régua Guia e Movimento Amortecido**:
+   - Modo Ancorado (faixa fixa no topo ou base da tela) e Modo Flutuante com interpolação suave (*lerp*).
+   - Régua horizontal amarela com foco suave para guiar a leitura linha a linha.
+5. **Síntese de Voz (TTS) com Pausa/Retomada e Karaokê**:
+   - Pausa e retomada (`Ctrl + Alt + Espaço`) sem perder o buffer.
+   - Destaque em tempo real da sentença ativa na caixa de texto.
+6. **5 Modos de Contraste Global para Fotofobia (`Ctrl + Alt + I`)**:
+   - Normal, Invertido, Preto/Amarelo, Âmbar (Anti-Luz Azul) e Escala de Cinza aplicados a toda a tela do Windows.
 
 ---
 
-## ⌨️ Tabela de Atalhos Globais
+## ⌨️ Tabela Completa de Atalhos Globais (v0.2)
 
-| Recurso | Atalho Global | Descrição |
+| Recurso | Atalho Global | Função |
 | :--- | :---: | :--- |
-| **Lupa Dinâmica** | `Ctrl + Alt + L` | Liga / desliga a lente flutuante de área ampla |
-| **Aumentar Zoom** | `Ctrl + +` ou `Mouse Wheel ▲` | Aumenta a ampliação (até 6.0x) |
-| **Diminuir Zoom** | `Ctrl + -` ou `Mouse Wheel ▼` | Reduz a ampliação (até 1.5x) |
-| **Contraste de Tela** | `Ctrl + Alt + I` | Alterna modo cromático em toda a tela *(Normal → Invertido → Preto/Amarelo)* |
-| **Vocalizar Texto** | `Ctrl + Alt + R` | Captura a seleção e vocaliza em voz alta |
-| **Parar Fala** | `Ctrl + Alt + P` | Interrompe imediatamente a leitura em curso |
+| **Lupa Virtual** | `Ctrl + Alt + L` | Liga / desliga a lente ampliada |
+| **Aumentar Zoom** | `Ctrl + +` / `Mouse Wheel ▲` | Aumenta a escala (até 6.0x) |
+| **Diminuir Zoom** | `Ctrl + -` / `Mouse Wheel ▼` | Reduz a escala (até 1.5x) |
+| **Contraste Global (5 Modos)** | `Ctrl + Alt + I` | Alterna: *Normal ➔ Invertido ➔ Preto/Amarelo ➔ Âmbar ➔ Cinza* |
+| **Ler Texto Selecionado** | `Ctrl + Alt + R` | Captura a seleção e vocaliza via TTS |
+| **OCR de Imagem da Tela** | `Ctrl + Alt + O` | Captura a imagem sob o mouse, extrai texto e lê em voz alta |
+| **Pausar / Retomar Leitura** | `Ctrl + Alt + Espaço` | Pausa ou continua a fala no ponto exato |
+| **Parar Fala Imediatamente** | `Ctrl + Alt + P` | Cancela imediatamente a leitura em curso |
 
 ---
 
 ## 🚀 Como Executar
 
+### 1. Versão Portátil (Sem instalar nada)
+Dê um duplo clique no arquivo executável gerado:
+- **[Sistema_Assistivo_Integrado_v0.2.exe](file:///c:/Users/04828103007/Desktop/TA/Sistema_Assistivo_Integrado_v0.2.exe)**
+
+### 2. Execução via Python
 ```bash
+pip install -r requirements.txt
 python main.py
 ```
-*(Para executar testes automatizados: `python test_assistive_app.py`)*
+
+### 3. Testes Automatizados
+```bash
+python test_assistive_app.py
+```
