@@ -1,8 +1,9 @@
 """
-Sistema Assistivo Integrado v0.2
+Sistema Assistivo Integrado v0.3
 Ponto de Entrada da Aplicação de Tecnologia Assistiva (TDIC).
 Executa o Painel Principal de Alto Contraste, Lupa Dinâmica de Área Ampla,
-Adaptação Cromática Global para Fotofobia, Síntese de Voz (TTS) e OCR Instantâneo.
+Adaptação Cromática Global para Fotofobia, Síntese de Voz (TTS), OCR Instantâneo,
+Ajuste de Fonte e Atalhos Personalizáveis.
 """
 
 import sys

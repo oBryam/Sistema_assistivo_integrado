@@ -1,5 +1,5 @@
 {
-    "magnifier_scale": 2.0,
+    "magnifier_scale": 1.5,
     "magnifier_preset": "Grande",
     "magnifier_docked": true,
     "magnifier_dock_position": "Topo",
@@ -9,5 +9,16 @@
     "tts_rate": 2,
     "audiodescription": true,
     "theme": "dark",
-    "test_key": "valor_teste"
+    "font_size": 10,
+    "shortcuts": {
+        "toggle_magnifier": "ctrl+alt+l",
+        "zoom_in": "ctrl+plus",
+        "zoom_in_alt": "ctrl+=",
+        "zoom_out": "ctrl+-",
+        "next_contrast": "ctrl+alt+i",
+        "read_selection": "ctrl+alt+r",
+        "toggle_pause": "ctrl+alt+space",
+        "stop_speech": "ctrl+alt+p",
+        "ocr_selection": "ctrl+alt+o"
+    }
 }

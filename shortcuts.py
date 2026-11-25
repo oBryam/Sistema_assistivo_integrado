@@ -1,13 +1,9 @@
 """
-Módulo de Gerenciamento de Atalhos Globais de Teclado - Versão Blindada contra Travamentos.
+Módulo de Gerenciamento de Atalhos Globais de Teclado - Versão com Atalhos Personalizáveis.
 Garante a operação 100% independente e segura:
-- Ctrl + Alt + L      : Alterna Lupa Dinâmica
-- Ctrl + Alt + I      : Alterna Contraste Global de Tela (5 Modos)
-- Ctrl + Alt + R      : Vocaliza Texto Selecionado
-- Ctrl + Alt + Espaço : Pausar / Retomar Leitura
-- Ctrl + Alt + P      : Interrompe Imediatamente a Fala
-- Ctrl + Alt + O      : Ativa Seleção Visual de Área para OCR
-- Ctrl + + / Ctrl + - : Zoom da Lupa (com bipes rápidos, sem colisão de áudio)
+- Atalhos configuráveis pelo usuário via tela de configurações
+- Fallback para atalhos padrão quando configuração ausente
+- Re-registro dinâmico após mudança de atalhos
 """
 
 import threading
@@ -15,10 +11,25 @@ import time
 import keyboard
 import pyautogui
 import pyperclip
+from config_manager import cfg
 from ocr_engine import ocr_engine
 from sound_effects import sounds
 
 pyautogui.FAILSAFE = False
+
+
+# Nomes amigáveis para exibição na interface
+SHORTCUT_LABELS = {
+    "toggle_magnifier": "Ligar/Desligar Lupa",
+    "zoom_in": "Aumentar Zoom",
+    "zoom_in_alt": "Aumentar Zoom (Alt)",
+    "zoom_out": "Diminuir Zoom",
+    "next_contrast": "Alternar Filtro de Contraste",
+    "read_selection": "Ler Seleção (TTS)",
+    "toggle_pause": "Pausar/Retomar Leitura",
+    "stop_speech": "Parar Leitura",
+    "ocr_selection": "Ler Imagem (OCR)",
+}
 
 
 class GlobalShortcutManager:
@@ -34,27 +45,37 @@ class GlobalShortcutManager:
     def start(self):
         if self.registered:
             return
+        self._register_all()
 
+    def _register_all(self):
+        """Registra todos os atalhos usando as configurações do usuário."""
         try:
+            sc = cfg.get_shortcuts_dict()
+
             # Eixo 2: Lupa
-            keyboard.add_hotkey("ctrl+alt+l", self._safe_dispatch(self._toggle_magnifier))
-            keyboard.add_hotkey("ctrl+plus", self._safe_dispatch(self.magnifier.zoom_in))
-            keyboard.add_hotkey("ctrl+=", self._safe_dispatch(self.magnifier.zoom_in))
-            keyboard.add_hotkey("ctrl+-", self._safe_dispatch(self.magnifier.zoom_out))
+            keyboard.add_hotkey(sc.get("toggle_magnifier", "ctrl+alt+l"), self._safe_dispatch(self._toggle_magnifier))
+            keyboard.add_hotkey(sc.get("zoom_in", "ctrl+plus"), self._safe_dispatch(self.magnifier.zoom_in))
+            keyboard.add_hotkey(sc.get("zoom_in_alt", "ctrl+="), self._safe_dispatch(self.magnifier.zoom_in))
+            keyboard.add_hotkey(sc.get("zoom_out", "ctrl+-"), self._safe_dispatch(self.magnifier.zoom_out))
 
             # Eixo 3: Contraste Global
-            keyboard.add_hotkey("ctrl+alt+i", self._safe_dispatch(self._next_contrast))
+            keyboard.add_hotkey(sc.get("next_contrast", "ctrl+alt+i"), self._safe_dispatch(self._next_contrast))
 
             # Eixo 4: TTS (Seleção, Pausa, Parada e Seleção Visual de OCR)
-            keyboard.add_hotkey("ctrl+alt+r", self.trigger_read_selection)
-            keyboard.add_hotkey("ctrl+alt+space", self._safe_dispatch(self.tts.toggle_pause))
-            keyboard.add_hotkey("ctrl+alt+p", self._safe_dispatch(self.tts.stop))
-            keyboard.add_hotkey("ctrl+alt+o", self._safe_dispatch(self.trigger_ocr_selection))
+            keyboard.add_hotkey(sc.get("read_selection", "ctrl+alt+r"), self.trigger_read_selection)
+            keyboard.add_hotkey(sc.get("toggle_pause", "ctrl+alt+space"), self._safe_dispatch(self.tts.toggle_pause))
+            keyboard.add_hotkey(sc.get("stop_speech", "ctrl+alt+p"), self._safe_dispatch(self.tts.stop))
+            keyboard.add_hotkey(sc.get("ocr_selection", "ctrl+alt+o"), self._safe_dispatch(self.trigger_ocr_selection))
 
             self.registered = True
-            print("[Shortcuts] Atalhos globais blindados registrados com sucesso.")
+            print("[Shortcuts] Atalhos globais registrados com sucesso.")
         except Exception as e:
             print(f"[Shortcuts Warning]: {e}")
+
+    def reload(self):
+        """Re-registra todos os atalhos após mudança de configuração."""
+        self.stop()
+        self._register_all()
 
     def _safe_dispatch(self, callback):
         def _wrapper():
@@ -157,6 +178,11 @@ class GlobalShortcutManager:
         except Exception as e:
             print(f"[Capture Error]: {e}")
             sounds.alert_no_text()
+
+    def get_shortcut_display(self, action: str) -> str:
+        """Retorna o atalho formatado para exibição na interface."""
+        hotkey = cfg.get_shortcut(action)
+        return hotkey.replace("+", "+").title().replace("Ctrl", "Ctrl").replace("Alt", "Alt").replace("Space", "Espaço")
 
     def stop(self):
         if self.registered:

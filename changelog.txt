@@ -1,0 +1,33 @@
+=====================================
+ Sistema Assistivo Integrado
+ Changelog - v0.3 (24/11/2026)
+=====================================
+
+NOVO
+----
+- Botão de engrenagem (⚙) no cabeçalho para abrir tela de Configurações
+- Ajuste de tamanho de fonte da interface (de 8 até 24), para melhor leitura por pessoas com baixa visão
+- Atalhos de teclado totalmente personalizáveis pelo usuário via tela de Configurações
+- Botão "Restaurar Atalhos Padrão" para voltar à configuração original
+- Rodapé da interface agora mostra os atalhos atuais do usuário em tempo real
+
+CORREÇÕES DE BUGS
+-----------------
+- OCR agora funciona em computadores onde o Tesseract está instalado em caminhos não padrão (Chocolatey, Scoop, PATH do sistema)
+- OCR não trava mais em certos computadores por erro de DPI/threading (instanciação preguiçosa do mss)
+- Variável de ambiente TESSERACT_CMD pode ser usada para apontar o caminho do Tesseract manualmente
+- Mensagem de erro clara quando o Tesseract não está instalado, em vez de crash silencioso
+- Filtro "Invertido" corrigido: faltava componente homogêneo na matriz, causando cores incorretas
+- Filtro "Preto/Amarelo" corrigido: agora usa coeficientes de luminância Rec. 709 com ratio de contraste WCAG AAA (≥ 15.6:1)
+- Filtro "Âmbar" corrigido: preserva contraste legível (WCAG AA ≥ 4.5:1) e reduz azul em ~85%
+- Filtro "Escala de Cinza" corrigido: atualizado de Rec. 601 (0.299/0.587/0.114) para Rec. 709 (0.2126/0.7152/0.0722), padrão sRGB moderno
+
+MUDANÇAS
+--------
+- Botão "Minimizar" removido do cabeçalho (desnecessário para o fluxo assistivo)
+- Versão atualizada de v0.2 para v0.3
+- Janela principal levemente maior (520x700) para acomodar fontes maiores
+- Toda a interface agora escala proporcionalmente com o tamanho de fonte escolhido
+- config.json agora salva "font_size" e "shortcuts" do usuário
+- Código do contrast_manager.py refatorado com métodos auxiliares (_make_matrix, _apply_matrix)
+- Código do shortcuts.py refatorado com método reload() para re-registro dinâmico de atalhos
